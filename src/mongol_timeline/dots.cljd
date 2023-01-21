@@ -1,0 +1,65 @@
+(ns mongol-timeline.dots
+  (:require ["package:flutter/material.dart" :as m]
+            [cljd.flutter.alpha2 :as f]))
+
+(defn simple []
+  (f/widget
+   :context ctx
+   (m/Container
+    .decoration
+    (m/BoxDecoration
+     .color (-> m/Theme
+                (.of ctx)
+                .accentColor)
+     .image nil
+     .shape (.circle m/BoxShape)))))
+
+(defn border-dot []
+  (f/widget
+   :context ctx
+   (m/Container
+    .decoration
+    (m/BoxDecoration
+     .color (-> m/Theme
+                (.of ctx)
+                .accentColor)
+     .image nil
+     .borderRadius (.all m/BorderRadius (.circular m/Radius 16))
+     .border (.all m/Border)))))
+
+(defn section []
+  (m/Container
+   .height 12
+   .width 12
+   .decoration 
+   (m/BoxDecoration
+    .color (.black m/Colors)
+    .image nil
+    .shape (.circle m/BoxShape))))
+
+(defn circle-icon []
+  (m/Container
+   .width 24
+   .height 24
+   .child (m/Icon (.event m/Icons) .color (.white m/Colors))
+   .decoration
+   (m/BoxDecoration
+    .color (.lightBlue m/Colors)
+    .borderRadius (.all m/BorderRadius (.circular m/Radius 64))
+    .boxShadow [(m/BoxShadow
+                 .color (.lightBlueAccent m/Colors)
+                 .blurRadius 16
+                 .offset (m/Offset 0 4))])))
+
+(defn section-highlighted []
+  (f/widget
+   :context ctx
+   (m/Container
+    .height 12
+    .width 12
+    .decoration (m/BoxDecoration
+                 .color (-> m/Theme
+                            (.of ctx)
+                            .accentColor)
+                 .image nil
+                 .shape (.circle m/BoxShape)))))

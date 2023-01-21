@@ -1,0 +1,39 @@
+(ns mongol-timeline.event-item
+  (:require ["package:flutter/material.dart" :as m]
+            [cljd.flutter.alpha2 :as f]))
+
+(defn event-card [title content]
+  (f/widget
+   :let [padding (.only m/EdgeInsets .left 16 .top 12 .right 16 .bottom 20)]
+   :context ctx
+   (m/Container
+    .decoration (m/BoxDecoration .borderRadius (.all m/BorderRadius (.circular m/Radius 2)))
+    .child
+    (m/Container
+     .padding padding
+     .child
+     (m/Column
+      .crossAxisAlignment (.start m/CrossAxisAlignment)
+      .children 
+      [(m/DefaultTextStyle
+        .style (or (-> m/Theme (.of ctx) .textTheme .subtitle1)
+                   (m/TextStyle))
+        .child title)
+       (m/SizedBox :height 8)
+       (m/DefaultTextStyle
+        .style (or (-> m/Theme (.of ctx) .textTheme .overline)
+                   (m/TextStyle))
+        .child content)])))))
+
+(defn section-divider [content]
+  (f/widget
+   :context ctx
+   (m/AnimatedDefaultTextStyle
+    .child content
+    .style (or (-> m/Theme
+                   (.of ctx)
+                   .textTheme
+                   .headline5)
+               (m/TextStyle))
+    .duration m/kThemeChangeDuration)))
+
