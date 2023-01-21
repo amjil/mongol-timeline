@@ -1,0 +1,8 @@
+{:paths ["src"] ; where your cljd files are
+ :deps {org.clojure/clojure {:mvn/version "1.10.1"}
+        tensegritics/clojuredart
+        {:git/url "https://github.com/tensegritics/ClojureDart.git"
+         :sha "130c929a0c8aa110357f1d41665482ecf0298d26"}}
+ :aliases {:cljd {:main-opts ["-m" "cljd.build"]}}
+ :cljd/opts {:kind :flutter
+             :main mongol-timeline.main}}

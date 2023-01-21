@@ -1,0 +1,20 @@
+(ns mongol-timeline.main
+  (:require ["package:flutter/material.dart" :as m]
+            [cljd.flutter.alpha2 :as f]))
+
+(defn main []
+  (m/runApp
+   (m/MaterialApp
+    .title "Welcome to Flutter"
+    .theme (m/ThemeData .primarySwatch m.Colors/blue
+                        .fontFamily "MongolianBaiZheng")
+    .home (m/Scaffold
+           .appBar (m/AppBar
+                    .title (m/Text "Mongol Timeline Example"))
+           .body
+           (m/Center
+            .child (m/Text "Test"
+                           .style (m/TextStyle
+                                   .color m.Colors/blue
+                                   .fontSize 32.0))))
+    .debugShowCheckedModeBanner false)))
