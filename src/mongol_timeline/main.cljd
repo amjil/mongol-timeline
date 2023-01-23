@@ -53,7 +53,6 @@
      (m/BoxDecoration
       .color m.Colors/grey))}
    {
-    ;; :indicator-offset (m/Offset 0 0)
     :child (m/Card
             .child
             (event-item/event-card
@@ -70,8 +69,10 @@
 
 (defn timeline-body []
   (f/widget
-   :let [events (simple-events)]
-  ;;  :bind {:events (atom events)}
+   
+   :get [:events]
+   :watch [events events]
+
    (timeline/timeline
     {:anchor (-> m/Alignment .center)
      :indicator-size 12
@@ -92,21 +93,43 @@
      })))
 
 (defn timeline-main []
-  (m/Scaffold
-   .appBar (m/AppBar
-            .title (m/Text "Mongol Timeline Example"))
-   .body
-   (timeline-body)
+  (f/widget
+   :let [simple-events (simple-events)]
+   :bind {:events (atom simple-events)}
+
+   (m/Scaffold
+    .appBar (m/AppBar
+             .title (m/Text "Mongol Timeline Example"))
+    .body
+    (timeline-body)
   ;;  (m/Center
   ;;   .child (m/Text "Test"
   ;;                  .style (m/TextStyle
   ;;                          .color m.Colors/blue
   ;;                          .fontSize 32.0)))
-   .floatingActionButton
-   (m/FloatingActionButton
-    .onPressed (fn [] (print "xxxx"))
-    .tooltip "add new event"
-    .child (m/Icon (.add m/Icons)))))
+    .floatingActionButton
+    (f/widget
+     :get [:events]
+     (m/FloatingActionButton
+      .onPressed
+      (fn []
+       (swap! events conj {:child (m/Card
+                                        .child
+                                        (event-item/event-card
+                                         (mgl/MongolText "title")
+                                         (mgl/MongolText "someone commented on your timeline")))
+                                :has-indicator? true
+                                :indicator
+                                (m/Container
+                                 .width 12
+                                 .height 12
+                                 .decoration
+                                 (m/BoxDecoration
+                                  .color m.Colors/grey))
+                                })
+        )
+      .tooltip "add new event"
+      .child (m/Icon (.add m/Icons)))))))
 
 (defn main []
   (m/runApp

@@ -69,17 +69,17 @@
                                    0 half-item-gap)
                   additional-right (get-addition-x width info :right)
                   right-end (.translate
-                              indicator-center
-                              (- (+ half-item-gap radius additional-gap additional-right) alt-x)
-                              0)
+                             indicator-center
+                             (+ (+ half-item-gap radius additional-gap additional-right) alt-x)
+                             0)
                   right-start (.translate indicator-center (+ radius line-gap) 0)]
-              (draw-line canvas right-start right-end theme)))
-          )
+              (draw-line canvas right-start right-end theme))))
         nil)
       (shouldRepaint [this _] true))
     .child
-    (m/SizedBox ;.width double/infinity
-                .height (:indicator-size info)))))
+    (m/SizedBox
+     .width double/infinity
+     .height (:indicator-size info)))))
 
 
 (defn- wraped-indicator [wraped-info]
@@ -159,7 +159,7 @@
                  (m/SizedBox .height (:gutter-spacing theme))
                  (m/Expanded .child (:child event))]
                 [(m/Expanded .child (:child event))])]
-   (m/IntrinsicHeight
+   (m/IntrinsicWidth
     .child
     (m/Column
      .mainAxisAlignment m.MainAxisAlignment/start
@@ -170,13 +170,13 @@
    :let [info (cond-> info
                 true
                 (assoc :item-count (count (:events info)))
-                
+
                 (empty? (:padding info))
                 (assoc :physics (.all m/EdgeInsets 8))
-                
+
                 (empty? (:shrink-wrap info))
                 (assoc :shrink-wrap true)
-                
+
                 (empty? (:primary info)) (assoc :primary false)
 
                 (:reverse info)
