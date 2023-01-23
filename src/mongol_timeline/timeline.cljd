@@ -3,7 +3,7 @@
             [cljd.flutter.alpha2 :as f]
             ["dart:ui" :as ui]))
 
-(declare get-addition-y
+(declare get-addition-x
          line-indicator-painter)
 
 (defn- draw-line [canvas start end theme]
@@ -40,7 +40,7 @@
                indicator-position :indicator-position} theme
 
               radius (/ indicator-size 2)
-              height (.-height size)
+              width (.-width size)
               half-item-gap (/ item-gap 2)
 
               alt-x (+ (.-dx alt-offset) (.-dx indicator-offset))
@@ -49,36 +49,37 @@
               indicator-center
               (let [indicator-center-point
                     (condp = indicator-position
-                      :top (.topCenter size (m/Offset 0 radius))
+                      :left (.centerLeft size (m/Offset radius 0))
                       :center (.center size (.zero m/Offset))
-                      :bottom (.bottomCenter size (m/Offset 0 (- radius))))]
+                      :right (.centerRight size (m/Offset (- radius) 0)))]
                 (.translate indicator-center-point alt-x alt-y))]
           (if-not first?
             (let [additional-gap (if prev-indicator?
                                    0 half-item-gap)
-                  additional-top (get-addition-y height info :upper)
-                  top-start (.translate
-                             indicator-center
-                             0
-                             (- (+ half-item-gap radius alt-y additional-gap additional-top)))
+                  additional-left (get-addition-x width info :left)
+                  left-start (.translate
+                              indicator-center
+                              (- (+ half-item-gap radius alt-x additional-gap additional-left))
+                              0)
 
-                  top-end (.translate indicator-center 0 (- (+ radius line-gap)))]
-              (draw-line canvas top-start top-end theme)))
+                  left-end (.translate indicator-center (- (+ radius line-gap)) 0)]
+              (draw-line canvas left-start left-end theme)))
           (if-not last?
             (let [additional-gap (if next-indicator?
                                    0 half-item-gap)
-                  additional-bottom (get-addition-y height info :downer)
-                  bottom-end (.translate
+                  additional-right (get-addition-x width info :right)
+                  right-end (.translate
                               indicator-center
-                              0
-                              (- (+ half-item-gap radius additional-gap additional-bottom) alt-y))
-                  bottom-start (.translate indicator-center 0 (+ radius line-gap))]
-              (draw-line canvas bottom-start bottom-end theme))))
+                              (- (+ half-item-gap radius additional-gap additional-right) alt-x)
+                              0)
+                  right-start (.translate indicator-center (+ radius line-gap) 0)]
+              (draw-line canvas right-start right-end theme)))
+          )
         nil)
       (shouldRepaint [this _] true))
     .child
-    (m/SizedBox .height double/infinity
-                .width (:indicator-size info)))))
+    (m/SizedBox ;.width double/infinity
+                .height (:indicator-size info)))))
 
 
 (defn- wraped-indicator [wraped-info]
@@ -155,12 +156,12 @@
                        :theme theme}
          tile (if (:has-indicator? event)
                 [(indicator-section section-info)
-                 (m/SizedBox .width (:gutter-spacing theme))
+                 (m/SizedBox .height (:gutter-spacing theme))
                  (m/Expanded .child (:child event))]
                 [(m/Expanded .child (:child event))])]
    (m/IntrinsicHeight
     .child
-    (m/Row
+    (m/Column
      .mainAxisAlignment m.MainAxisAlignment/start
      .children tile))))
 
@@ -182,6 +183,7 @@
                 (assoc :events (reverse (:events info))))]
    :bind {:info info :theme theme}
    (m.ListView/separated
+    .scrollDirection m.Axis/horizontal
     .padding (:padding info)
     ;; .physics (:physics info)
     .shrinkWrap (:shrink-wrap info)
@@ -189,29 +191,28 @@
     ;; .controller (:controller info)
     .primary (:primary info)
     ;; .separatorBuilder (f/build (m/SizedBox .height (:item-gap theme)))
-    .separatorBuilder (fn [_ _] (m/SizedBox .height (:item-gap theme)))
+    .separatorBuilder (fn [_ _] (m/SizedBox .width (:item-gap theme)))
     .itemBuilder
     (f/build
      [i]
-     (timeline-item i)
-     ))))
+     (timeline-item i)))))
 
-(defn- get-addition-y [height indicator-info mode]
+(defn- get-addition-x [width indicator-info mode]
   ;; indicator-info {:position /:top :center :bottom/ :size 0.0
   (let [{position :indicator-position size :indicator-size}
         indicator-info]
     (condp = mode
-      :upper
+      :left
       (condp = position
-        :top 0
-        :center (-> (- height size) (/ 2))
-        :bottom (- height size)
+        :left 0
+        :center (-> (- width size) (/ 2))
+        :right (- width size)
         0)
 
-      :downer
+      :right
       (condp = position
-        :top (- height size)
-        :center (-> (- height size) (/ 2))
-        :bottom 0
+        :left (- width size)
+        :center (-> (- width size) (/ 2))
+        :right 0
         0)
       0)))

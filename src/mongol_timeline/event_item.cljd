@@ -4,7 +4,7 @@
 
 (defn event-card [title content]
   (f/widget
-   :let [padding (.only m/EdgeInsets .left 16 .top 12 .right 16 .bottom 20)]
+   :let [padding (.only m/EdgeInsets .top 16 .right 12 .bottom 16 .left 20)]
    :context ctx
    (m/Container
     .decoration (m/BoxDecoration .borderRadius (.all m/BorderRadius (.circular m/Radius 2)))
@@ -12,16 +12,16 @@
     (m/Container
      .padding padding
      .child
-     (m/Column
+     (m/Row
       .crossAxisAlignment (.start m/CrossAxisAlignment)
       .children 
       [(m/DefaultTextStyle
-        .style (or (-> m/Theme (.of ctx) .textTheme .subtitle1)
+        .style (or (-> m/Theme (.of ctx) .-textTheme .subtitle1)
                    (m/TextStyle))
         .child title)
-       (m/SizedBox :height 8)
+       (m/SizedBox :width 8)
        (m/DefaultTextStyle
-        .style (or (-> m/Theme (.of ctx) .textTheme .overline)
+        .style (or (-> m/Theme (.of ctx) .-textTheme .overline)
                    (m/TextStyle))
         .child content)])))))
 

@@ -1,6 +1,7 @@
 (ns mongol-timeline.main
   (:require ["package:flutter/material.dart" :as m]
             ["dart:ui" :as ui]
+            ["package:mongol/mongol.dart" :as mgl]
             [cljd.flutter.alpha2 :as f]
             [mongol-timeline.timeline :as timeline]
             [mongol-timeline.event-item :as event-item]))
@@ -9,8 +10,8 @@
   [{:child (m/Card
             .child
             (event-item/event-card
-             (m/Text "click the + button")
-             (m/Text "to add a new event item")))
+             (mgl/MongolText "click the + button")
+             (mgl/MongolText "to add a new event item")))
     :indicator-size 12
     ;; :indicator-offset (m/Offset 0 0)
     :has-indicator? true
@@ -26,8 +27,8 @@
     :child (m/Card
             .child
             (event-item/event-card
-             (m/Text "multi\nline\ntitle\nawesome!")
-             (m/Text "someone commented on your timeline")))
+             (mgl/MongolText "multi\nline\ntitle\nawesome!")
+             (mgl/MongolText "someone commented on your timeline")))
     :has-indicator? true
     :indicator
     (m/Container
@@ -41,8 +42,8 @@
     :child (m/Card
             .child
             (event-item/event-card
-             (m/Text "111multi\nline\ntitle\nawesome!")
-             (m/Text "someone commented on your timeline")))
+             (mgl/MongolText "111multi\nline\ntitle\nawesome!")
+             (mgl/MongolText "someone commented on your timeline")))
     :has-indicator? true
     :indicator
     (m/Container
@@ -56,8 +57,8 @@
     :child (m/Card
             .child
             (event-item/event-card
-             (m/Text "title")
-             (m/Text "someone commented on your timeline")))
+             (mgl/MongolText "title")
+             (mgl/MongolText "someone commented on your timeline")))
     :has-indicator? true
     :indicator
     (m/Container
@@ -72,7 +73,6 @@
    :let [events (simple-events)]
   ;;  :bind {:events (atom events)}
    (timeline/timeline
-    ;; {:anchor (-> m/Alignment .Alignment.centertopCenter)
     {:anchor (-> m/Alignment .center)
      :indicator-size 12
      :indicator-offset (m/Offset 6 6)
@@ -82,7 +82,7 @@
      :reverse false
      }
     {:line-color m.Colors/grey
-     :item-gap 0
+     :item-gap 10
      :line-gap 0
      :gutter-spacing 12.0
      :stroke-width 2.0
