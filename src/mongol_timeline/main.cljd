@@ -1,6 +1,103 @@
 (ns mongol-timeline.main
   (:require ["package:flutter/material.dart" :as m]
-            [cljd.flutter.alpha2 :as f]))
+            ["dart:ui" :as ui]
+            [cljd.flutter.alpha2 :as f]
+            [mongol-timeline.timeline :as timeline]
+            [mongol-timeline.event-item :as event-item]))
+
+;; required this.child,
+;; this.indicator,
+;; this.indicatorSize,
+;; this.forceLineDrawing = false,
+;; this.anchor,
+;; this.indicatorOffset = const Offset (0, 0),
+
+(defn- simple-events []
+  [{:child (m/Card
+            .child
+            (event-item/event-card
+             (m/Text "click the + button")
+             (m/Text "to add a new event item")))
+    :indicator-size 12
+    :indicator-offset (m/Offset 0 24)
+    :has-indicator? true
+    :indicator (m/Container
+                .width 12
+                .height 12
+                .decoration
+                (m/BoxDecoration
+                 .color  m.Colors/blueAccent))}
+   {:anchor (-> m/Alignment .topCenter)
+    :indicator-offset (m/Offset 0 24)
+    :child (event-item/event-card
+            (m/Text "multi\nline\ntitle\nawesome!")
+            (m/Text "someone commented on your timeline"))
+    :has-indicator? true
+    :indicator
+    (m/Container
+     .width 16
+     .height 16
+     .decoration
+     (m/BoxDecoration
+      .color (.blueAccent m/Colors)
+      .borderRadius
+      (.all m/BorderRadius
+            (.circular m/Radius 4))))}
+   {:anchor (-> m/Alignment .topCenter)
+    :indicator-offset (m/Offset 0 24)
+    :child (event-item/event-card
+            (m/Text "title")
+            (m/Text "someone commented on your timeline"))
+    :has-indicator? true
+    :indicator
+    (m/Container
+     .width 16
+     .height 16
+     .decoration
+     (m/BoxDecoration
+      .color (.blueAccent m/Colors)
+      .borderRadius
+      (.all m/BorderRadius
+            (.circular m/Radius 4))))}])
+
+(defn timeline-body []
+  (f/widget
+   :let [events (simple-events)]
+  ;;  :bind {:events (atom events)}
+   (timeline/timeline
+    {:anchor (-> m/Alignment .topCenter)
+     :indicator-size 56
+     :indicator-offset (m/Offset 0 24)
+     :alt-offset (m/Offset 10 40)
+     :events events
+     :reverse false
+     }
+    {:line-color m.Colors/grey
+     :item-gap 10
+     :line-gap 0
+     :gutter-spacing 12.0
+     :stroke-width 4.0
+     :stroke-cap (.butt ui/StrokeCap)
+     :style (.stroke m/PaintingStyle)
+     :indicator-position :center
+     })))
+
+(defn timeline-main []
+  (m/Scaffold
+   .appBar (m/AppBar
+            .title (m/Text "Mongol Timeline Example"))
+   .body
+   (timeline-body)
+  ;;  (m/Center
+  ;;   .child (m/Text "Test"
+  ;;                  .style (m/TextStyle
+  ;;                          .color m.Colors/blue
+  ;;                          .fontSize 32.0)))
+   .floatingActionButton
+   (m/FloatingActionButton
+    .onPressed (fn [] (print "xxxx"))
+    .tooltip "add new event"
+    .child (m/Icon (.add m/Icons)))))
 
 (defn main []
   (m/runApp
@@ -8,13 +105,5 @@
     .title "Welcome to Flutter"
     .theme (m/ThemeData .primarySwatch m.Colors/blue
                         .fontFamily "MongolianBaiZheng")
-    .home (m/Scaffold
-           .appBar (m/AppBar
-                    .title (m/Text "Mongol Timeline Example"))
-           .body
-           (m/Center
-            .child (m/Text "Test"
-                           .style (m/TextStyle
-                                   .color m.Colors/blue
-                                   .fontSize 32.0))))
+    .home (timeline-main)
     .debugShowCheckedModeBanner false)))

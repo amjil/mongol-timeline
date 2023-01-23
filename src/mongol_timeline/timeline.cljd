@@ -1,0 +1,212 @@
+(ns mongol-timeline.timeline
+  (:require ["package:flutter/material.dart" :as m]
+            [cljd.flutter.alpha2 :as f]
+            ["dart:ui" :as ui]))
+
+(declare get-addition-y
+         line-indicator-painter)
+
+(defn- draw-line [canvas start end theme]
+  (let [{line-color :line-color
+         stroke-cap :stroke-cap
+         stroke-width :stroke-width
+         style :style} theme]
+    (.drawLine canvas start end
+               (doto (m/Paint)
+                 (-> .-color (set! line-color))
+                 (-> .-strokeCap (set! stroke-cap))
+                 (-> .-strokeWidth (set! stroke-width))
+                 (-> .-style (set! style))))))
+
+(defn- line-indicator-painter [section-info]
+  (f/widget
+   :get [:info :theme]
+   (m/CustomPaint
+    .painter
+    (reify :extends m/CustomPainter
+      (paint
+        [this canvas size]
+        (let [{indicator-size :indicator-size
+               indicator-offset :indicator-offset
+               alt-offset :alt-offset} info
+
+              {first? :first?
+               last? :last?
+               prev-indicator? :prev-indicator?
+               next-indicator? :next-indicator?} section-info
+               
+              {line-gap :line-gap
+               line-color :line-color
+               stroke-cap :stroke-cap
+               stroke-width :stroke-width
+               item-gap :item-gap
+               indicator-position :indicator-position
+               style :style} theme
+
+              radius (/ indicator-size 2)
+              height (.-height size)
+              half-item-gap (/ item-gap 2)
+
+              alt-x (+ (.-dx alt-offset) (.-dx indicator-offset))
+              alt-y (+ (.-dy alt-offset) (.-dy indicator-offset))
+
+              indicator-center
+              (let [indicator-center-point
+                    (condp = indicator-position
+                      :top (.topCenter size (m/Offset 0 radius))
+                      :center (.center size (.zero m/Offset))
+                      :bottom (.bottomCenter size (m/Offset 0 (- radius))))]
+                (.translate indicator-center-point alt-x alt-y))]
+          ;; (if-not first?
+          ;;   (let [additional-gap (if prev-indicator?
+          ;;                          0 half-item-gap)
+          ;;         additional-top (get-addition-y height info "upper")
+          ;;         top-start (.translate
+          ;;                    indicator-center
+          ;;                    0
+          ;;                    (- (+ half-item-gap radius alt-y additional-gap additional-top)))
+          ;;         top-end (.translate indicator-center 0 (- (+ radius line-gap)))]
+          ;;     (draw-line canvas top-start top-end theme)))
+          (if-not last?
+            (let [additional-gap (if next-indicator?
+                                   0 half-item-gap)
+                  additional-bottom (get-addition-y height info "downer")
+                  bottom-end (.translate
+                              indicator-center
+                              0
+                              (- (+ half-item-gap radius additional-gap additional-bottom) alt-y))
+                  bottom-start (.translate indicator-center 0 (+ radius line-gap))]
+              (draw-line canvas bottom-start bottom-end theme)))
+          )
+        nil)
+      (shouldRepaint [this _] true))
+    .child 
+    (m/SizedBox .height double/infinity
+                .width (:indicator-size info))
+    )))
+
+
+(defn- wraped-indicator [wraped-info]
+  (f/widget
+   :get [:info]
+   :let [{indicator-offset :indicator-offset
+          alt-offset :alt-offset} info
+         {width :width
+          height :height
+          event :event} wraped-info
+         offset
+         (m/Offset
+          (+ (.-dx alt-offset) (.-dx indicator-offset))
+          (+ (.-dy alt-offset) (.-dy indicator-offset)))]
+   (m/Container
+    .width width
+    .height height
+    .transform (.translationValues m/Matrix4 (.-dx offset) (.-dy offset) 0)
+    .child (:indicator event))))
+
+(defn- indicator-section [section-info]
+  (f/widget
+   :get [:info]
+   :let [indicator-size (get-in section-info [:event :indicator-size])
+         indicator-offset (get-in section-info [:event :indicator-offset])
+         anchor (get-in section-info [:event :anchor])
+         override-indicator-size (if indicator-size
+                                   indicator-size
+                                   (:indicator-size info))
+         override-indicator-position (if anchor
+                                       anchor
+                                       (:anchor info))]
+
+   (m/Stack
+    .children
+    [(line-indicator-painter section-info)
+     (.fill
+      m/Positioned
+      .child
+      (m/Align
+       .alignment override-indicator-position
+       .child (wraped-indicator
+               {:event (:event info)
+                :indicator-offset indicator-offset
+                :width override-indicator-size
+                :height override-indicator-size})))])))
+
+(defn timeline-item [i]
+  (f/widget
+   :get [:info :theme]
+   :let [events (:events info)
+         event (nth events i)
+         section-info {:first? (zero? i)
+                       :last? (dec (count events))
+                       :prev-indicator? (if (zero? i) 
+                                          false
+                                          (-> events (nth (dec i)) :has-indicator?))
+                       :next-indicator? (if (= (inc i) (count events)) 
+                                          false
+                                          (-> events (nth (inc i)) :has-indicator?))
+                       :event event
+                       :theme theme}
+         tile (if (:has-indicator? event)
+                [(indicator-section section-info)
+                 (m/SizedBox .width (:gutter-spacing theme))
+                 (m/Expanded .child (:child event))]
+                [(m/Expanded .child (:child event))])]
+   (m/IntrinsicHeight
+    .child
+    (m/Row
+     .mainAxisAlignment m.MainAxisAlignment/start
+     .children tile))))
+
+(defn timeline [info theme]
+  (f/widget
+   :let [info (cond-> info
+                true
+                (assoc :item-count (count (:events info)))
+                
+                (empty? (:padding info))
+                (assoc :physics (.all m/EdgeInsets 8))
+                
+                (empty? (:shrink-wrap info))
+                (assoc :shrink-wrap true)
+                
+                (empty? (:primary info)) (assoc :primary false)
+
+                (:reverse info)
+                (assoc :events (reverse (:events info))))]
+   :bind {:info info :theme theme}
+   (m.ListView/separated
+    .padding (:padding info)
+    ;; .physics (:physics info)
+    .shrinkWrap (:shrink-wrap info)
+    .itemCount (:item-count info)
+    ;; .controller (:controller info)
+    .primary (:primary info)
+    ;; .separatorBuilder (f/build (m/SizedBox .height (:item-gap theme)))
+    .separatorBuilder (fn [_ _] (m/SizedBox .height (:item-gap theme)))
+    .itemBuilder
+    (f/build
+     [i]
+     (timeline-item i)
+    ;;  (m/Text (str i))
+     ))))
+
+(defn- get-addition-y [height indicator-info mode]
+  ;; indicator-info {:position /:top :center :bottom/ :size 0.0
+  (let [{position :indicator-position size :indicator-size} 
+        indicator-info]
+    (condp = mode
+      "upper"
+      (condp = position
+        :top 0
+        :center (-> (- height size) (/ 2))
+        :bottom (- height size)
+        0)
+      
+      "downer"
+      (condp = position
+        :top (- height size)
+        :center (-> (- height size) (/ 2))
+        :bottom 0
+        0)
+      
+      0)))
