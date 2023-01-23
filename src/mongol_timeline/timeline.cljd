@@ -34,21 +34,17 @@
                last? :last?
                prev-indicator? :prev-indicator?
                next-indicator? :next-indicator?} section-info
-               
+
               {line-gap :line-gap
-               line-color :line-color
-               stroke-cap :stroke-cap
-               stroke-width :stroke-width
                item-gap :item-gap
-               indicator-position :indicator-position
-               style :style} theme
+               indicator-position :indicator-position} theme
 
               radius (/ indicator-size 2)
               height (.-height size)
               half-item-gap (/ item-gap 2)
 
-              alt-x (.-dx alt-offset)
-              alt-y (.-dy alt-offset)
+              alt-x (+ (.-dx alt-offset) (.-dx indicator-offset))
+              alt-y (+ (.-dy alt-offset) (.-dy indicator-offset))
 
               indicator-center
               (let [indicator-center-point
@@ -60,30 +56,29 @@
           (if-not first?
             (let [additional-gap (if prev-indicator?
                                    0 half-item-gap)
-                  additional-top (get-addition-y height info "upper")
+                  additional-top (get-addition-y height info :upper)
                   top-start (.translate
                              indicator-center
                              0
                              (- (+ half-item-gap radius alt-y additional-gap additional-top)))
+
                   top-end (.translate indicator-center 0 (- (+ radius line-gap)))]
               (draw-line canvas top-start top-end theme)))
           (if-not last?
             (let [additional-gap (if next-indicator?
                                    0 half-item-gap)
-                  additional-bottom (get-addition-y height info "downer")
+                  additional-bottom (get-addition-y height info :downer)
                   bottom-end (.translate
                               indicator-center
                               0
                               (- (+ half-item-gap radius additional-gap additional-bottom) alt-y))
                   bottom-start (.translate indicator-center 0 (+ radius line-gap))]
-              (draw-line canvas bottom-start bottom-end theme)))
-          )
+              (draw-line canvas bottom-start bottom-end theme))))
         nil)
       (shouldRepaint [this _] true))
-    .child 
+    .child
     (m/SizedBox .height double/infinity
-                .width (:indicator-size info))
-    )))
+                .width (:indicator-size info)))))
 
 
 (defn- wraped-indicator [wraped-info]
@@ -105,8 +100,8 @@
     .child 
     ;; (:indicator event)
     (m/Container
-     .width 16
-     .height 16
+     .width 12
+     .height 12
      .decoration
      (m/BoxDecoration
       .color m.Colors/grey
@@ -199,27 +194,24 @@
     (f/build
      [i]
      (timeline-item i)
-    ;;  (m/Text (str i))
      ))))
 
 (defn- get-addition-y [height indicator-info mode]
   ;; indicator-info {:position /:top :center :bottom/ :size 0.0
-  (let [{position :indicator-position size :indicator-size} 
+  (let [{position :indicator-position size :indicator-size}
         indicator-info]
     (condp = mode
-      "upper"
+      :upper
       (condp = position
         :top 0
         :center (-> (- height size) (/ 2))
         :bottom (- height size)
         0)
-      
-      "downer"
+
+      :downer
       (condp = position
         :top (- height size)
         :center (-> (- height size) (/ 2))
         :bottom 0
         0)
-      
-      0))
-  )
+      0)))

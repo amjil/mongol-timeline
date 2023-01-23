@@ -12,64 +12,80 @@
              (m/Text "click the + button")
              (m/Text "to add a new event item")))
     :indicator-size 12
-    :indicator-offset (m/Offset 0 0)
-    :has-indicator? true
-    :indicator (m/Container
-                .width 12
-                .height 12
-                .decoration
-                (m/BoxDecoration
-                 .color  m.Colors/grey))}
-   {:anchor (-> m/Alignment .topCenter)
-    :indicator-offset (m/Offset 0 24)
-    :child (event-item/event-card
-            (m/Text "multi\nline\ntitle\nawesome!")
-            (m/Text "someone commented on your timeline"))
+    ;; :indicator-offset (m/Offset 0 0)
     :has-indicator? true
     :indicator
     (m/Container
-     .width 16
-     .height 16
+     .width 12
+     .height 12
      .decoration
      (m/BoxDecoration
-      .color m.Colors/grey
-      .borderRadius
-      (.all m/BorderRadius
-            (.circular m/Radius 4))))}
-   {:anchor (-> m/Alignment .topCenter)
-    :indicator-offset (m/Offset 0 0)
-    :child (event-item/event-card
-            (m/Text "title")
-            (m/Text "someone commented on your timeline"))
+      .color  m.Colors/grey))}
+   {
+    ;; :indicator-offset (m/Offset 0 24)
+    :child (m/Card
+            .child
+            (event-item/event-card
+             (m/Text "multi\nline\ntitle\nawesome!")
+             (m/Text "someone commented on your timeline")))
     :has-indicator? true
     :indicator
     (m/Container
-     .width 16
-     .height 16
+     .width 12
+     .height 12
      .decoration
      (m/BoxDecoration
-      .color m.Colors/grey
-      .borderRadius
-      (.all m/BorderRadius
-            (.circular m/Radius 4))))}])
+      .color m.Colors/grey))}
+   {
+    ;; :indicator-offset (m/Offset 0 24)
+    :child (m/Card
+            .child
+            (event-item/event-card
+             (m/Text "111multi\nline\ntitle\nawesome!")
+             (m/Text "someone commented on your timeline")))
+    :has-indicator? true
+    :indicator
+    (m/Container
+     .width 12
+     .height 12
+     .decoration
+     (m/BoxDecoration
+      .color m.Colors/grey))}
+   {
+    ;; :indicator-offset (m/Offset 0 0)
+    :child (m/Card
+            .child
+            (event-item/event-card
+             (m/Text "title")
+             (m/Text "someone commented on your timeline")))
+    :has-indicator? true
+    :indicator
+    (m/Container
+     .width 12
+     .height 12
+     .decoration
+     (m/BoxDecoration
+      .color m.Colors/grey))}])
 
 (defn timeline-body []
   (f/widget
    :let [events (simple-events)]
   ;;  :bind {:events (atom events)}
    (timeline/timeline
-    {:anchor (-> m/Alignment .topCenter)
-     :indicator-size 16
-     :indicator-offset (m/Offset 0 0)
-     :alt-offset (m/Offset 10 40)
+    ;; {:anchor (-> m/Alignment .Alignment.centertopCenter)
+    {:anchor (-> m/Alignment .center)
+     :indicator-size 12
+     :indicator-offset (m/Offset 6 6)
+     :indicator-position :center
+     :alt-offset (m/Offset 0 0)
      :events events
      :reverse false
      }
     {:line-color m.Colors/grey
-     :item-gap 10
+     :item-gap 0
      :line-gap 0
      :gutter-spacing 12.0
-     :stroke-width 4.0
+     :stroke-width 2.0
      :stroke-cap (.butt ui/StrokeCap)
      :style (.stroke m/PaintingStyle)
      :indicator-position :center
