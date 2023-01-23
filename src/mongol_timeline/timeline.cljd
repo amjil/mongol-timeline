@@ -47,8 +47,8 @@
               height (.-height size)
               half-item-gap (/ item-gap 2)
 
-              alt-x (+ (.-dx alt-offset) (.-dx indicator-offset))
-              alt-y (+ (.-dy alt-offset) (.-dy indicator-offset))
+              alt-x (.-dx alt-offset)
+              alt-y (.-dy alt-offset)
 
               indicator-center
               (let [indicator-center-point
@@ -57,16 +57,16 @@
                       :center (.center size (.zero m/Offset))
                       :bottom (.bottomCenter size (m/Offset 0 (- radius))))]
                 (.translate indicator-center-point alt-x alt-y))]
-          ;; (if-not first?
-          ;;   (let [additional-gap (if prev-indicator?
-          ;;                          0 half-item-gap)
-          ;;         additional-top (get-addition-y height info "upper")
-          ;;         top-start (.translate
-          ;;                    indicator-center
-          ;;                    0
-          ;;                    (- (+ half-item-gap radius alt-y additional-gap additional-top)))
-          ;;         top-end (.translate indicator-center 0 (- (+ radius line-gap)))]
-          ;;     (draw-line canvas top-start top-end theme)))
+          (if-not first?
+            (let [additional-gap (if prev-indicator?
+                                   0 half-item-gap)
+                  additional-top (get-addition-y height info "upper")
+                  top-start (.translate
+                             indicator-center
+                             0
+                             (- (+ half-item-gap radius alt-y additional-gap additional-top)))
+                  top-end (.translate indicator-center 0 (- (+ radius line-gap)))]
+              (draw-line canvas top-start top-end theme)))
           (if-not last?
             (let [additional-gap (if next-indicator?
                                    0 half-item-gap)
@@ -102,7 +102,19 @@
     .width width
     .height height
     .transform (.translationValues m/Matrix4 (.-dx offset) (.-dy offset) 0)
-    .child (:indicator event))))
+    .child 
+    ;; (:indicator event)
+    (m/Container
+     .width 16
+     .height 16
+     .decoration
+     (m/BoxDecoration
+      .color m.Colors/grey
+      .borderRadius
+      (.all m/BorderRadius
+            (.circular m/Radius 4))))
+    
+    )))
 
 (defn- indicator-section [section-info]
   (f/widget
@@ -137,7 +149,7 @@
    :let [events (:events info)
          event (nth events i)
          section-info {:first? (zero? i)
-                       :last? (dec (count events))
+                       :last? (= (inc i) (count events))
                        :prev-indicator? (if (zero? i) 
                                           false
                                           (-> events (nth (dec i)) :has-indicator?))
@@ -209,4 +221,5 @@
         :bottom 0
         0)
       
-      0)))
+      0))
+  )

@@ -5,13 +5,6 @@
             [mongol-timeline.timeline :as timeline]
             [mongol-timeline.event-item :as event-item]))
 
-;; required this.child,
-;; this.indicator,
-;; this.indicatorSize,
-;; this.forceLineDrawing = false,
-;; this.anchor,
-;; this.indicatorOffset = const Offset (0, 0),
-
 (defn- simple-events []
   [{:child (m/Card
             .child
@@ -19,14 +12,14 @@
              (m/Text "click the + button")
              (m/Text "to add a new event item")))
     :indicator-size 12
-    :indicator-offset (m/Offset 0 24)
+    :indicator-offset (m/Offset 0 0)
     :has-indicator? true
     :indicator (m/Container
                 .width 12
                 .height 12
                 .decoration
                 (m/BoxDecoration
-                 .color  m.Colors/blueAccent))}
+                 .color  m.Colors/grey))}
    {:anchor (-> m/Alignment .topCenter)
     :indicator-offset (m/Offset 0 24)
     :child (event-item/event-card
@@ -39,12 +32,12 @@
      .height 16
      .decoration
      (m/BoxDecoration
-      .color (.blueAccent m/Colors)
+      .color m.Colors/grey
       .borderRadius
       (.all m/BorderRadius
             (.circular m/Radius 4))))}
    {:anchor (-> m/Alignment .topCenter)
-    :indicator-offset (m/Offset 0 24)
+    :indicator-offset (m/Offset 0 0)
     :child (event-item/event-card
             (m/Text "title")
             (m/Text "someone commented on your timeline"))
@@ -55,7 +48,7 @@
      .height 16
      .decoration
      (m/BoxDecoration
-      .color (.blueAccent m/Colors)
+      .color m.Colors/grey
       .borderRadius
       (.all m/BorderRadius
             (.circular m/Radius 4))))}])
@@ -66,8 +59,8 @@
   ;;  :bind {:events (atom events)}
    (timeline/timeline
     {:anchor (-> m/Alignment .topCenter)
-     :indicator-size 56
-     :indicator-offset (m/Offset 0 24)
+     :indicator-size 16
+     :indicator-offset (m/Offset 0 0)
      :alt-offset (m/Offset 10 40)
      :events events
      :reverse false

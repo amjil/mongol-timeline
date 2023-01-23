@@ -1,7 +1,6 @@
 # mongol_timeline
 
 A new Flutter project.
-Not complated yet!
 
 ## Getting Started
 
