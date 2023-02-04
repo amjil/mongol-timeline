@@ -7,88 +7,22 @@
          line-indicator-painter
          get-offset draw-line)
 
-(defn- ^m/Offset get-offset [^m/Offset a ^m/Offset b]
-  (m/Offset
-   (+ (.-dx a) (.-dx b))
-   (+ (.-dy a) (.-dy b))))
-
-(defn- draw-line [^m/Canvas canvas start end {line-color :line-color
-                                              stroke-cap :stroke-cap
-                                              stroke-width :stroke-width
-                                              style :style}]
-  (.drawLine canvas start end
-             (doto (m/Paint)
-               (-> .-color (set! line-color))
-               (-> .-strokeCap (set! stroke-cap))
-               (-> .-strokeWidth (set! stroke-width))
-               (-> .-style (set! style)))))
 
 (defn- line-indicator-painter [i]
   (f/widget
    :get [:info :theme]
-   :let [events (:events info)
-         event (nth events i)
-         first? (zero? i)
-         last? (= (inc i) (count events))
-         prev-indicator? (if first?
-                           false
-                           (-> events (nth (dec i)) :has-indicator?))
-         next-indicator? (if last?
-                           false
-                           (-> events (nth (inc i)) :has-indicator?))
-         {indicator-size :indicator-size
-          indicator-offset :indicator-offset
-          alt-offset :alt-offset} info
-         {line-gap :line-gap
-          item-gap :item-gap
-          indicator-position :indicator-position} theme
-         offset (get-offset (:alt-offset info) (:indicator-offset info))
-         alt-x (.-dx offset)
-         alt-y (.-dy offset)]
    (m/CustomPaint
     .painter
     (reify :extends m/CustomPainter
       (paint
         [_ canvas size]
-        (let [radius (/ indicator-size 2)
-              width (.-width size)
-              half-item-gap (/ item-gap 2)
-
-              indicator-center
-              (let [indicator-center-point
-                    (condp = indicator-position
-                      :left (.centerLeft size (m/Offset radius 0))
-                      :center (.center size (.zero m/Offset))
-                      :right (.centerRight size (m/Offset (- radius) 0)))]
-                (.translate indicator-center-point alt-x alt-y))]
-          (if-not first?
-            (let [additional-gap (if prev-indicator?
-                                   0 half-item-gap)
-                  additional-left (get-addition-x width info :left)
-                  left-start (.translate
-                              indicator-center
-                              (- (+ half-item-gap radius alt-x additional-gap additional-left))
-                              0)
-
-                  left-end (.translate indicator-center (- (+ radius line-gap)) 0)]
-              (draw-line canvas left-start left-end theme)))
-          (if-not last?
-            (let [additional-gap (if next-indicator?
-                                   0 half-item-gap)
-                  additional-right (get-addition-x width info :right)
-                  right-end (.translate
-                             indicator-center
-                             (+ (+ half-item-gap radius additional-gap additional-right) alt-x)
-                             0)
-                  right-start (.translate indicator-center (+ radius line-gap) 0)]
-              (draw-line canvas right-start right-end theme))))
+        (draw-indicator-line canvas size i info theme)
         nil)
       (shouldRepaint [this _] true))
     .child
     (m/SizedBox
      .width double/infinity
      .height (:indicator-size info)))))
-
 
 (defn- wraped-indicator [wraped-info]
   (f/widget
@@ -217,3 +151,76 @@
         :right 0
         0)
       0)))
+
+(defn- ^m/Offset get-offset
+  [^m/Offset a ^m/Offset b]
+  (m/Offset
+   (+ (.-dx a) (.-dx b))
+   (+ (.-dy a) (.-dy b))))
+
+(defn- draw-line [^m/Canvas canvas start end {line-color :line-color
+                                              stroke-cap :stroke-cap
+                                              stroke-width :stroke-width
+                                              style :style}]
+  (.drawLine canvas start end
+             (doto (m/Paint)
+               (-> .-color (set! line-color))
+               (-> .-strokeCap (set! stroke-cap))
+               (-> .-strokeWidth (set! stroke-width))
+               (-> .-style (set! style)))))
+
+(defn- get-if-has-indicator [i first? last? events]
+  [(if first?
+     false
+     (-> events (nth (dec i)) :has-indicator?))
+   (if last?
+     false
+     (-> events (nth (inc i)) :has-indicator?))])
+
+(defn- draw-indicator-line
+  [^m/Canvas canvas ^m/Size size i info theme]
+  (let [events (:events info)
+        first? (zero? i)
+        last? (= (inc i) (count events))
+
+        [prev-indicator?
+         next-indicator?] (get-if-has-indicator i first? last? events)
+
+        {line-gap :line-gap
+         item-gap :item-gap
+         indicator-position :indicator-position} theme
+
+        offset (get-offset (:alt-offset info) (:indicator-offset info))
+        radius (/ (:indicator-size info) 2)
+        width (.-width size)
+        half-item-gap (/ item-gap 2)
+
+        indicator-center-point
+        (condp = indicator-position
+          :left (.centerLeft size (m/Offset radius 0))
+          :center (.center size (.zero m/Offset))
+          :right (.centerRight size (m/Offset (- radius) 0)))
+
+        indicator-center
+        (.translate indicator-center-point (.-dx offset) (.-dy offset))]
+    (when-not first?
+      (let [additional-gap (if prev-indicator?
+                             0 half-item-gap)
+            additional-left (get-addition-x width info :left)
+            left-start (.translate
+                        indicator-center
+                        (- (+ half-item-gap radius (.-dx offset) additional-gap additional-left))
+                        0)
+
+            left-end (.translate indicator-center (- (+ radius line-gap)) 0)]
+        (draw-line canvas left-start left-end theme)))
+    (when-not last?
+      (let [additional-gap (if next-indicator?
+                             0 half-item-gap)
+            additional-right (get-addition-x width info :right)
+            right-end (.translate
+                       indicator-center
+                       (+ (+ half-item-gap radius additional-gap additional-right) (.-dx offset))
+                       0)
+            right-start (.translate indicator-center (+ radius line-gap) 0)]
+        (draw-line canvas right-start right-end theme)))))
