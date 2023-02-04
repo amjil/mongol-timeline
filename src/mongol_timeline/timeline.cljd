@@ -4,47 +4,55 @@
             ["dart:ui" :as ui]))
 
 (declare get-addition-x
-         line-indicator-painter)
+         line-indicator-painter
+         get-offset draw-line)
 
-(defn- draw-line [canvas start end theme]
-  (let [{line-color :line-color
-         stroke-cap :stroke-cap
-         stroke-width :stroke-width
-         style :style} theme]
-    (.drawLine canvas start end
-               (doto (m/Paint)
-                 (-> .-color (set! line-color))
-                 (-> .-strokeCap (set! stroke-cap))
-                 (-> .-strokeWidth (set! stroke-width))
-                 (-> .-style (set! style))))))
+(defn- ^m/Offset get-offset [^m/Offset a ^m/Offset b]
+  (m/Offset
+   (+ (.-dx a) (.-dx b))
+   (+ (.-dy a) (.-dy b))))
 
-(defn- line-indicator-painter [section-info]
+(defn- draw-line [^m/Canvas canvas start end {line-color :line-color
+                                              stroke-cap :stroke-cap
+                                              stroke-width :stroke-width
+                                              style :style}]
+  (.drawLine canvas start end
+             (doto (m/Paint)
+               (-> .-color (set! line-color))
+               (-> .-strokeCap (set! stroke-cap))
+               (-> .-strokeWidth (set! stroke-width))
+               (-> .-style (set! style)))))
+
+(defn- line-indicator-painter [i]
   (f/widget
    :get [:info :theme]
+   :let [events (:events info)
+         event (nth events i)
+         first? (zero? i)
+         last? (= (inc i) (count events))
+         prev-indicator? (if first?
+                           false
+                           (-> events (nth (dec i)) :has-indicator?))
+         next-indicator? (if last?
+                           false
+                           (-> events (nth (inc i)) :has-indicator?))
+         {indicator-size :indicator-size
+          indicator-offset :indicator-offset
+          alt-offset :alt-offset} info
+         {line-gap :line-gap
+          item-gap :item-gap
+          indicator-position :indicator-position} theme
+         offset (get-offset (:alt-offset info) (:indicator-offset info))
+         alt-x (.-dx offset)
+         alt-y (.-dy offset)]
    (m/CustomPaint
     .painter
     (reify :extends m/CustomPainter
       (paint
-        [this canvas size]
-        (let [{indicator-size :indicator-size
-               indicator-offset :indicator-offset
-               alt-offset :alt-offset} info
-
-              {first? :first?
-               last? :last?
-               prev-indicator? :prev-indicator?
-               next-indicator? :next-indicator?} section-info
-
-              {line-gap :line-gap
-               item-gap :item-gap
-               indicator-position :indicator-position} theme
-
-              radius (/ indicator-size 2)
+        [_ canvas size]
+        (let [radius (/ indicator-size 2)
               width (.-width size)
               half-item-gap (/ item-gap 2)
-
-              alt-x (+ (.-dx alt-offset) (.-dx indicator-offset))
-              alt-y (+ (.-dy alt-offset) (.-dy indicator-offset))
 
               indicator-center
               (let [indicator-center-point
@@ -85,20 +93,15 @@
 (defn- wraped-indicator [wraped-info]
   (f/widget
    :get [:info]
-   :let [{indicator-offset :indicator-offset
-          alt-offset :alt-offset} info
-         {width :width
+   :let [{width :width
           height :height
           event :event} wraped-info
-         offset
-         (m/Offset
-          (+ (.-dx alt-offset) (.-dx indicator-offset))
-          (+ (.-dy alt-offset) (.-dy indicator-offset)))]
+         offset (get-offset (:alt-offset info) (:indicator-offset info))]
    (m/Container
     .width width
     .height height
     .transform (.translationValues m/Matrix4 (.-dx offset) (.-dy offset) 0)
-    .child 
+    .child
     ;; (:indicator event)
     (m/Container
      .width 12
@@ -108,9 +111,7 @@
       .color m.Colors/grey
       .borderRadius
       (.all m/BorderRadius
-            (.circular m/Radius 4))))
-    
-    )))
+            (.circular m/Radius 4)))))))
 
 (defn- indicator-section [section-info]
   (f/widget
@@ -155,7 +156,7 @@
                        :event event
                        :theme theme}
          tile (if (:has-indicator? event)
-                [(indicator-section section-info)
+                [(indicator-section i)
                  (m/SizedBox .height (:gutter-spacing theme))
                  (m/Expanded .child (:child event))]
                 [(m/Expanded .child (:child event))])]
