@@ -7,7 +7,6 @@
          line-indicator-painter
          get-offset draw-line)
 
-
 (defn- line-indicator-painter [i]
   (f/widget
    :get [:info :theme]
@@ -55,10 +54,7 @@
          anchor (get-in section-info [:event :anchor])
          override-indicator-size (if indicator-size
                                    indicator-size
-                                   (:indicator-size info))
-         override-indicator-position (if anchor
-                                       anchor
-                                       (:anchor info))]
+                                   (:indicator-size info))]
 
    (m/Stack
     .children
@@ -67,7 +63,7 @@
       m/Positioned
       .child
       (m/Align
-       .alignment override-indicator-position
+       .alignment (if anchor anchor (:anchor info))
        .child (wraped-indicator
                {:event (:event info)
                 :indicator-offset indicator-offset
@@ -79,16 +75,6 @@
    :get [:info :theme]
    :let [events (:events info)
          event (nth events i)
-         section-info {:first? (zero? i)
-                       :last? (= (inc i) (count events))
-                       :prev-indicator? (if (zero? i) 
-                                          false
-                                          (-> events (nth (dec i)) :has-indicator?))
-                       :next-indicator? (if (= (inc i) (count events)) 
-                                          false
-                                          (-> events (nth (inc i)) :has-indicator?))
-                       :event event
-                       :theme theme}
          tile (if (:has-indicator? event)
                 [(indicator-section i)
                  (m/SizedBox .height (:gutter-spacing theme))
